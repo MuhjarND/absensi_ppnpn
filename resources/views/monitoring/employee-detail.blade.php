@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Pegawai - Absensi PPNPN')
+@section('title', 'Detail Pegawai - Absensi PTA Papua Barat')
 @section('page-title', 'Detail Absensi Pegawai')
 @section('page-subtitle', $employee->name . ' (' . ($employee->nip ?? 'NIP: -') . ')')
 
@@ -138,9 +138,11 @@
 
 @section('scripts')
 <script>
+    const storageBaseUrl = @json(asset('storage'));
+
     function viewPhoto(photoIn, photoOut) {
-        document.getElementById('photoIn').src = photoIn ? '/storage/' + photoIn : 'https://via.placeholder.com/300x400?text=Tidak+Ada+Foto';
-        document.getElementById('photoOut').src = photoOut ? '/storage/' + photoOut : 'https://via.placeholder.com/300x400?text=Belum+Absen+Pulang';
+        document.getElementById('photoIn').src = photoIn ? (storageBaseUrl + '/' + photoIn) : 'https://via.placeholder.com/300x400?text=Tidak+Ada+Foto';
+        document.getElementById('photoOut').src = photoOut ? (storageBaseUrl + '/' + photoOut) : 'https://via.placeholder.com/300x400?text=Belum+Absen+Pulang';
         document.getElementById('photoModal').style.display = 'flex';
     }
 </script>

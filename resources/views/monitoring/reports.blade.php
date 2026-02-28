@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Laporan Monitoring - Absensi PPNPN')
+@section('title', 'Laporan Monitoring - Absensi PTA Papua Barat')
 @section('page-title', 'Laporan Rekapitulasi - Monitoring')
 
 @section('sidebar-menu')
@@ -12,6 +12,9 @@
 @endsection
 
 @section('content')
+    @php
+        $users = $users ?? ($employees ?? collect());
+    @endphp
     <div class="card mb-4">
         <div class="card-body">
             <form action="{{ route('monitoring.reports') }}" method="GET"
@@ -43,7 +46,7 @@
         <div class="card-header border-bottom-0 pb-0">
             <h5>Ringkasan Kinerja Pegawai (Berdasarkan Filter Tgl)</h5>
             <p style="color: var(--text-secondary); margin-bottom: 0;">Klik pada nama pegawai untuk melihat detail foto
-                absensi.</p>
+                absensi (selfie masuk dan pulang).</p>
         </div>
         <div class="card-body p-0">
             <div style="overflow-x: auto;">
@@ -79,9 +82,9 @@
                                 <td class="text-center"><span class="badge badge-danger"
                                         style="font-size: 14px; padding: 6px 10px;">{{ $user->total_alpha }}</span></td>
                                 <td>
-                                    <a href="{{ route('monitoring.employee.detail', ['id' => $user->id, 'start_date' => request('start_date', $startDate->format('Y-m-d')), 'end_date' => request('end_date', $endDate->format('Y-m-d'))]) }}"
+                                    <a href="{{ route('monitoring.detail', ['userId' => $user->id, 'start_date' => request('start_date', $startDate->format('Y-m-d')), 'end_date' => request('end_date', $endDate->format('Y-m-d'))]) }}"
                                         class="btn btn-sm btn-outline-primary" style="width: 100%;">
-                                        Detail <i class="fas fa-arrow-right"></i>
+                                        Detail & Selfie <i class="fas fa-arrow-right"></i>
                                     </a>
                                 </td>
                             </tr>
@@ -99,7 +102,7 @@
                 </table>
             </div>
         </div>
-        @if($users->hasPages())
+        @if(method_exists($users, 'hasPages') && $users->hasPages())
             <div class="card-body border-top">
                 {{ $users->appends(request()->query())->links() }}
             </div>

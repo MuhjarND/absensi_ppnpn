@@ -72,6 +72,7 @@
                         <th>Absen Masuk</th>
                         <th>Absen Pulang</th>
                         <th>Status</th>
+                        <th>Selfie</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -106,12 +107,22 @@
                             <td>
                                 <span class="badge badge-{{ $attendance->status_badge }}">{{ ucfirst($attendance->status) }}</span>
                             </td>
+                            <td>
+                                @if($attendance->clock_in_photo || $attendance->clock_out_photo)
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                        onclick='viewSelfie(@json($attendance->clock_in_photo), @json($attendance->clock_out_photo), @json($attendance->user->name), @json($attendance->date->format("d/m/Y")))'>
+                                        <i class="fas fa-camera"></i> Lihat
+                                    </button>
+                                @else
+                                    <span style="color: var(--text-secondary);">-</span>
+                                @endif
+                            </td>
                         </tr>
                     @endforeach
                     
                     @if($todayAttendances->count() == 0)
                         <tr>
-                            <td colspan="5" class="text-center py-4">
+                            <td colspan="6" class="text-center py-4">
                                 <div class="empty-state">
                                     <i class="fas fa-eye-slash"></i>
                                     <h5>Belum ada aktivitas</h5>
@@ -124,5 +135,61 @@
         </div>
     </div>
 </div>
+
+<div id="selfieModal"
+    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:9999; align-items:center; justify-content:center; padding:16px;">
+    <div style="background:#fff; border-radius:var(--radius); width:min(920px, 96vw); max-height:90vh; overflow:auto; padding:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h5 id="selfieModalTitle" style="margin:0;">Selfie Absensi</h5>
+            <button type="button" onclick="closeSelfieModal()"
+                style="border:none; background:transparent; font-size:20px; cursor:pointer;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:16px;">
+            <div>
+                <div style="font-weight:600; margin-bottom:8px;">Foto Masuk</div>
+                <img id="selfiePhotoIn" alt="Selfie Masuk"
+                    style="width:100%; border-radius:8px; background:#f3f4f6; min-height:240px; object-fit:cover;">
+            </div>
+            <div>
+                <div style="font-weight:600; margin-bottom:8px;">Foto Pulang</div>
+                <img id="selfiePhotoOut" alt="Selfie Pulang"
+                    style="width:100%; border-radius:8px; background:#f3f4f6; min-height:240px; object-fit:cover;">
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('scripts')
+<script>
+    const storageBaseUrl = @json(asset('storage'));
+    const emptyClockInPhoto = 'https://via.placeholder.com/300x400?text=Tidak+Ada+Foto+Masuk';
+    const emptyClockOutPhoto = 'https://via.placeholder.com/300x400?text=Tidak+Ada+Foto+Pulang';
+
+    function buildPhotoUrl(path, fallback) {
+        return path ? (storageBaseUrl + '/' + path) : fallback;
+    }
+
+    function viewSelfie(photoIn, photoOut, employeeName, dateLabel) {
+        const modal = document.getElementById('selfieModal');
+        document.getElementById('selfieModalTitle').innerText = 'Selfie Absensi - ' + employeeName + ' (' + dateLabel + ')';
+        document.getElementById('selfiePhotoIn').src = buildPhotoUrl(photoIn, emptyClockInPhoto);
+        document.getElementById('selfiePhotoOut').src = buildPhotoUrl(photoOut, emptyClockOutPhoto);
+        modal.style.display = 'flex';
+    }
+
+    function closeSelfieModal() {
+        document.getElementById('selfieModal').style.display = 'none';
+    }
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            closeSelfieModal();
+        }
+    });
+</script>
 @endsection
 

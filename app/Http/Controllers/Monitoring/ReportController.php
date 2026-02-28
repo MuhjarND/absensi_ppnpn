@@ -14,47 +14,55 @@ class ReportController extends Controller
     {
         $startDate = $request->start_date ? Carbon::parse($request->start_date) : Carbon::now()->startOfMonth();
         $endDate = $request->end_date ? Carbon::parse($request->end_date) : Carbon::now();
+        $search = trim((string) $request->search);
 
-        $query = Attendance::with(['user', 'shift'])
-            ->byDateRange($startDate->toDateString(), $endDate->toDateString());
-
-        if ($request->user_id) {
-            $query->byUser($request->user_id);
-        }
-
-        if ($request->status) {
-            $query->where('status', $request->status);
-        }
-
-        $attendances = $query->orderBy('date', 'desc')->paginate(20);
-
-        $employees = User::whereHas('role', function ($q) {
+        $users = User::whereHas('role', function ($q) {
             $q->where('name', 'pegawai');
-        })->where('is_active', true)->orderBy('name')->get();
+        })
+            ->where('is_active', true)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($searchQuery) use ($search) {
+                    $searchQuery->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('nip', 'like', '%' . $search . '%');
+                });
+            })
+            ->withCount([
+                'attendances as total_hadir' => function ($query) use ($startDate, $endDate) {
+                    $query->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
+                        ->where('status', 'hadir');
+                },
+                'attendances as total_terlambat' => function ($query) use ($startDate, $endDate) {
+                    $query->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
+                        ->where('status', 'terlambat');
+                },
+                'attendances as total_izin' => function ($query) use ($startDate, $endDate) {
+                    $query->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
+                        ->whereIn('status', ['izin', 'sakit']);
+                },
+                'attendances as total_alpha' => function ($query) use ($startDate, $endDate) {
+                    $query->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
+                        ->where('status', 'alpha');
+                },
+            ])
+            ->orderBy('name')
+            ->paginate(20);
 
-        return view('monitoring.reports', compact('attendances', 'employees', 'startDate', 'endDate'));
+        return view('monitoring.reports', compact('users', 'startDate', 'endDate'));
     }
 
-    public function detail($userId)
+    public function detail(Request $request, $userId)
     {
         $employee = User::with('role', 'shift')->findOrFail($userId);
 
-        $month = request('month', now()->month);
-        $year = request('year', now()->year);
+        $startDate = $request->start_date ? Carbon::parse($request->start_date) : Carbon::now()->startOfMonth();
+        $endDate = $request->end_date ? Carbon::parse($request->end_date) : Carbon::now();
 
-        $attendances = Attendance::byUser($userId)
-            ->byMonth($year, $month)
+        $attendances = Attendance::with(['clockInLocation', 'clockOutLocation'])
+            ->byUser($userId)
+            ->byDateRange($startDate->toDateString(), $endDate->toDateString())
             ->orderBy('date', 'desc')
-            ->get();
+            ->paginate(20);
 
-        $summary = [
-            'hadir' => $attendances->where('status', 'hadir')->count(),
-            'terlambat' => $attendances->where('status', 'terlambat')->count(),
-            'alpha' => $attendances->where('status', 'alpha')->count(),
-            'izin' => $attendances->where('status', 'izin')->count(),
-            'sakit' => $attendances->where('status', 'sakit')->count(),
-        ];
-
-        return view('monitoring.detail', compact('employee', 'attendances', 'summary', 'month', 'year'));
+        return view('monitoring.employee-detail', compact('employee', 'attendances', 'startDate', 'endDate'));
     }
 }
