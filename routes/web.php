@@ -14,6 +14,11 @@ Route::get('/', function () {
     return redirect('/login');
 });
 
+// Public file access without symbolic link (serves files from storage/app/public).
+Route::get('/storage/{path}', 'PublicStorageController@show')
+    ->where('path', '.*')
+    ->name('public.storage');
+
 // Auth routes (register disabled - admin creates users)
 Auth::routes(['register' => false]);
 
