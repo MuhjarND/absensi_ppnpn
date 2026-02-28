@@ -18,9 +18,10 @@ class AttendanceController extends Controller
         $user = Auth::user();
         $todayAttendance = $user->todayAttendance();
         $shift = $user->getActiveShift();
+        $isOffToday = $user->isScheduledOffByDate(now());
         $locations = Location::active()->get();
 
-        return view('pegawai.attendance', compact('user', 'todayAttendance', 'shift', 'locations'));
+        return view('pegawai.attendance', compact('user', 'todayAttendance', 'shift', 'locations', 'isOffToday'));
     }
 
     public function clockIn(Request $request)
@@ -32,6 +33,10 @@ class AttendanceController extends Controller
         ]);
 
         $user = Auth::user();
+
+        if ($user->isScheduledOffByDate(now())) {
+            return response()->json(['error' => 'Hari ini Anda dijadwalkan libur, absen masuk tidak diperlukan.'], 422);
+        }
 
         // Check if already clocked in today
         if ($user->todayAttendance()) {

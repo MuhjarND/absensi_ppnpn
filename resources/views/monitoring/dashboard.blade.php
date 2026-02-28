@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Monitoring Dashboard - Absensi PPNPN')
+@section('title', 'Monitoring Dashboard - Absensi PTA Papua Barat')
 @section('page-title', 'Dashboard Monitoring')
 @section('page-subtitle', 'Pantauan kehadiran hari ini (' . date('d M Y') . ')')
 
@@ -12,6 +12,10 @@
 @endsection
 
 @section('content')
+@php
+    $izinAtauSakit = $izinAtauSakit ?? 0;
+    $todayAttendances = $todayAttendances ?? ($recentAttendances ?? collect());
+@endphp
 <div class="stats-grid">
     <div class="stat-card primary">
         <div class="stat-icon primary">
@@ -121,3 +125,4 @@
     </div>
 </div>
 @endsection
+

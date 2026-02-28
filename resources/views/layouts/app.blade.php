@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Absensi PPNPN')</title>
+    <title>@yield('title', 'Absensi PTA Papua Barat')</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,8 +32,8 @@
                 <i class="fas fa-fingerprint"></i>
             </div>
             <div class="brand-text">
-                Absensi PPNPN
-                <small>Sistem Kehadiran Digital</small>
+                Absensi PTA Papua Barat
+                <small>Aplikasi Absensi PTA Papua Barat</small>
             </div>
         </div>
 

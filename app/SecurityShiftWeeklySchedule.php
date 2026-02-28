@@ -9,8 +9,13 @@ class SecurityShiftWeeklySchedule extends Model
     protected $fillable = [
         'user_id',
         'shift_id',
+        'is_off',
         'day_of_week',
         'created_by',
+    ];
+
+    protected $casts = [
+        'is_off' => 'boolean',
     ];
 
     public function user()

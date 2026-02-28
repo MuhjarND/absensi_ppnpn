@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Monitoring;
 
 use App\Http\Controllers\Controller;
 use App\Attendance;
+use App\LeaveRequest;
 use App\User;
 use Carbon\Carbon;
 
@@ -31,7 +32,12 @@ class DashboardController extends Controller
             ->whereNotNull('clock_out')
             ->count();
 
-        $recentAttendances = Attendance::with(['user', 'shift'])
+        $izinAtauSakit = LeaveRequest::where('status', 'approved')
+            ->whereDate('start_date', '<=', $today->toDateString())
+            ->whereDate('end_date', '>=', $today->toDateString())
+            ->count();
+
+        $todayAttendances = Attendance::with(['user', 'shift', 'clockInLocation', 'clockOutLocation'])
             ->where('date', $today)
             ->orderBy('clock_in', 'desc')
             ->get();
@@ -42,7 +48,8 @@ class DashboardController extends Controller
             'terlambatHariIni',
             'belumAbsen',
             'sudahPulang',
-            'recentAttendances'
+            'izinAtauSakit',
+            'todayAttendances'
         ));
     }
 }

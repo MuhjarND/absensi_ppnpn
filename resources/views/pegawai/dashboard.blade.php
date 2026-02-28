@@ -41,7 +41,9 @@
                 <div
                     style="background: var(--body-bg); padding: 10px 20px; border-radius: var(--radius-sm); font-size: 14px; width: 100%;">
                     <div style="margin-bottom: 8px;"><strong>Shift Aktif Anda:</strong></div>
-                    @if($shift)
+                    @if($isOffToday)
+                        <div><span class="badge badge-warning" style="font-size: 14px;">Libur</span></div>
+                    @elseif($shift)
                         <div><span class="badge badge-primary" style="font-size: 14px;">{{ $shift->name }}</span></div>
                         <div style="margin-top: 4px; font-family: monospace;">{{ date('H:i', strtotime($shift->start_time)) }} -
                             {{ date('H:i', strtotime($shift->end_time)) }}</div>

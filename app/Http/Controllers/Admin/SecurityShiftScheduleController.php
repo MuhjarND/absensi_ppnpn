@@ -9,6 +9,7 @@ use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class SecurityShiftScheduleController extends Controller
 {
@@ -42,6 +43,11 @@ class SecurityShiftScheduleController extends Controller
     public function storeWeeklyTemplate(Request $request)
     {
         $dayOptions = $this->getDayOptions();
+        $allowedShiftValues = ['off'];
+
+        foreach (Shift::pluck('id')->all() as $shiftId) {
+            $allowedShiftValues[] = (string) $shiftId;
+        }
 
         $rules = [
             'weekly_user_id' => 'required|exists:users,id',
@@ -49,9 +55,9 @@ class SecurityShiftScheduleController extends Controller
 
         foreach ($dayOptions as $day) {
             if ($day['index'] === 0) {
-                $rules[$day['field']] = 'nullable|exists:shifts,id';
+                $rules[$day['field']] = ['nullable', Rule::in($allowedShiftValues)];
             } else {
-                $rules[$day['field']] = 'required|exists:shifts,id';
+                $rules[$day['field']] = ['required', Rule::in($allowedShiftValues)];
             }
         }
 
@@ -67,15 +73,18 @@ class SecurityShiftScheduleController extends Controller
 
         DB::transaction(function () use ($request, $securityEmployee) {
             foreach ($this->getDayOptions() as $day) {
-                $shiftId = $request->input($day['field']);
+                $selectedValue = $request->input($day['field']);
 
                 // Minggu boleh kosong. Jika kosong, hapus jadwal Minggu yang ada.
-                if ($day['index'] === 0 && empty($shiftId)) {
+                if ($day['index'] === 0 && ($selectedValue === null || $selectedValue === '')) {
                     SecurityShiftWeeklySchedule::where('user_id', $securityEmployee->id)
                         ->where('day_of_week', 0)
                         ->delete();
                     continue;
                 }
+
+                $isOff = $selectedValue === 'off';
+                $shiftId = $isOff ? null : (int) $selectedValue;
 
                 SecurityShiftWeeklySchedule::updateOrCreate(
                     [
@@ -84,6 +93,7 @@ class SecurityShiftScheduleController extends Controller
                     ],
                     [
                         'shift_id' => $shiftId,
+                        'is_off' => $isOff,
                         'created_by' => Auth::id(),
                     ]
                 );
@@ -121,7 +131,8 @@ class SecurityShiftScheduleController extends Controller
 
         foreach ($dayOptions as $day) {
             if (isset($weeklySchedules[$day['index']])) {
-                $preset[$day['field']] = $weeklySchedules[$day['index']]->shift_id;
+                $schedule = $weeklySchedules[$day['index']];
+                $preset[$day['field']] = $schedule->is_off ? 'off' : $schedule->shift_id;
             }
         }
 
@@ -151,9 +162,16 @@ class SecurityShiftScheduleController extends Controller
             $days = [];
             foreach ($dayOptions as $day) {
                 $schedule = $schedulesByDay->get($day['index']);
-                $days[$day['field']] = $schedule && $schedule->shift
-                    ? $schedule->shift->name
-                    : '-';
+
+                if (!$schedule) {
+                    $days[$day['field']] = '-';
+                } elseif ($schedule->is_off) {
+                    $days[$day['field']] = 'Libur';
+                } elseif ($schedule->shift) {
+                    $days[$day['field']] = $schedule->shift->name;
+                } else {
+                    $days[$day['field']] = '-';
+                }
             }
 
             $rows[] = [

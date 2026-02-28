@@ -47,10 +47,16 @@
                                 <small style="color: var(--text-secondary);">(Opsional)</small>
                             @endif
                         </label>
+                        @php
+                            $selectedValue = old($day['field'], $weeklyPreset[$day['field']]);
+                        @endphp
                         <select name="{{ $day['field'] }}" class="form-control" {{ $day['index'] !== 0 ? 'required' : '' }}>
-                            <option value="">{{ $day['index'] === 0 ? '-- Tidak Diatur --' : '-- Pilih Shift --' }}</option>
+                            <option value="" {{ ($selectedValue === null || $selectedValue === '') ? 'selected' : '' }}>
+                                {{ $day['index'] === 0 ? '-- Tidak Diatur --' : '-- Pilih Shift / Libur --' }}
+                            </option>
+                            <option value="off" {{ (string) $selectedValue === 'off' ? 'selected' : '' }}>Libur</option>
                             @foreach($shifts as $shift)
-                                <option value="{{ $shift->id }}" {{ old($day['field'], $weeklyPreset[$day['field']]) == $shift->id ? 'selected' : '' }}>
+                                <option value="{{ $shift->id }}" {{ (string) $selectedValue === (string) $shift->id ? 'selected' : '' }}>
                                     {{ $shift->name }} ({{ date('H:i', strtotime($shift->start_time)) }} -
                                     {{ date('H:i', strtotime($shift->end_time)) }})
                                 </option>

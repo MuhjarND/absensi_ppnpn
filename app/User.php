@@ -113,8 +113,14 @@ class User extends Authenticatable
                 ->where('day_of_week', $dayOfWeek)
                 ->first();
 
-            if ($weeklySchedule && $weeklySchedule->shift) {
-                return $weeklySchedule->shift;
+            if ($weeklySchedule) {
+                if ($weeklySchedule->is_off) {
+                    return null;
+                }
+
+                if ($weeklySchedule->shift) {
+                    return $weeklySchedule->shift;
+                }
             }
 
             if ($this->shift) {
@@ -131,5 +137,23 @@ class User extends Authenticatable
     public function todayAttendance()
     {
         return $this->attendances()->where('date', now()->toDateString())->first();
+    }
+
+    public function isScheduledOffByDate($date = null)
+    {
+        if (!$this->is_security) {
+            return false;
+        }
+
+        if (empty($date)) {
+            $targetCarbon = now();
+        } else {
+            $targetCarbon = $date instanceof Carbon ? $date : Carbon::parse($date);
+        }
+
+        return $this->securityShiftWeeklySchedules()
+            ->where('day_of_week', $targetCarbon->dayOfWeek)
+            ->where('is_off', true)
+            ->exists();
     }
 }

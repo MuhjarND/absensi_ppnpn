@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Login - Absensi PPNPN')
+@section('title', 'Login - Absensi PTA Papua Barat')
 
 @section('styles')
     <style>
@@ -32,8 +32,8 @@
                 <div class="icon">
                     <i class="fas fa-fingerprint"></i>
                 </div>
-                <h2>Absensi PPNPN</h2>
-                <p>Sistem Kehadiran Digital Terpadu</p>
+                <h2>Absensi PTA Papua Barat</h2>
+                <p>Aplikasi Absensi PTA Papua Barat</p>
             </div>
 
             <form method="POST" action="{{ route('login') }}">

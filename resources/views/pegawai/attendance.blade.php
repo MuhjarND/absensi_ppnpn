@@ -24,7 +24,9 @@
             <div>
                 <div style="font-size: 13px; color: var(--text-secondary);">Shift Aktif Anda</div>
                 <div style="font-weight: 700; font-size: 16px;">
-                    @if($shift)
+                    @if($isOffToday)
+                        Libur
+                    @elseif($shift)
                         {{ $shift->name }} ({{ date('H:i', strtotime($shift->start_time)) }} -
                         {{ date('H:i', strtotime($shift->end_time)) }})
                     @else
@@ -83,7 +85,13 @@
 
                 <!-- Actions -->
                 <div class="attendance-actions">
-                    @if(!$todayAttendance)
+                    @if($isOffToday && !$todayAttendance)
+                        <div
+                            style="background: rgba(245, 158, 11, 0.1); color: var(--warning); padding: 16px; border-radius: var(--radius); text-align: center; border: 1px dashed var(--warning); width: 100%;">
+                            <h4><i class="fas fa-calendar-times"></i> Hari Ini Libur</h4>
+                            <p style="margin: 5px 0 0; font-size: 14px;">Anda tidak perlu melakukan absen masuk atau pulang.</p>
+                        </div>
+                    @elseif(!$todayAttendance)
                         <!-- Belum absen masuk -->
                         <button type="button" class="btn btn-success" id="btn-clock-in" onclick="submitAttendance('in')"
                             disabled style="box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">

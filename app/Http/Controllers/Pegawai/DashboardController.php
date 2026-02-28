@@ -16,6 +16,7 @@ class DashboardController extends Controller
         $todayAttendance = $user->todayAttendance();
 
         $shift = $user->getActiveShift();
+        $isOffToday = $user->isScheduledOffByDate(now());
 
         // Monthly summary
         $monthlyAttendances = Attendance::byUser($user->id)
@@ -31,6 +32,7 @@ class DashboardController extends Controller
             'user',
             'todayAttendance',
             'shift',
+            'isOffToday',
             'totalHadir',
             'totalTerlambat',
             'totalAlpha',
