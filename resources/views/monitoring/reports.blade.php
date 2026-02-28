@@ -8,6 +8,7 @@
     <li class="menu-item"><a href="{{ route('monitoring.dashboard') }}"><i class="fas fa-desktop"></i> Dashboard</a></li>
     <li class="menu-item"><a href="{{ route('monitoring.reports') }}" class="active"><i class="fas fa-file-invoice"></i>
             Laporan Detail</a></li>
+    <li class="menu-item"><a href="{{ route('monitoring.leave-requests.index') }}"><i class="fas fa-envelope-open-text"></i> Pengajuan Izin</a></li>
 @endsection
 
 @section('content')

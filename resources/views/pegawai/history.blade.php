@@ -13,6 +13,8 @@
             Absensi</a></li>
     <li class="menu-item"><a href="{{ route('pegawai.leave-requests.index') }}"><i class="fas fa-envelope-open-text"></i>
             Pengajuan Izin</a></li>
+    <li class="menu-label">Akun</li>
+    <li class="menu-item"><a href="{{ route('pegawai.account.password.edit') }}" class="{{ request()->routeIs('pegawai.account.password.*') ? 'active' : '' }}"><i class="fas fa-key"></i> Ubah Password</a></li>
 @endsection
 
 @section('content')

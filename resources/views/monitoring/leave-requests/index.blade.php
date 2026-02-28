@@ -1,27 +1,21 @@
 @extends('layouts.app')
 
-@section('title', 'Daftar Pengajuan Izin - Absensi PPNPN')
+@section('title', 'Pengajuan Izin - Monitoring')
 @section('page-title', 'Pengajuan Izin / Sakit')
+@section('page-subtitle', 'Review dan proses pengajuan pegawai')
 
 @section('sidebar-menu')
     <li class="menu-label">Menu Utama</li>
-    <li class="menu-item"><a href="{{ route('admin.dashboard') }}"><i class="fas fa-home"></i> Dashboard</a></li>
-    <li class="menu-label">Master Data</li>
-    <li class="menu-item"><a href="{{ route('admin.employees.index') }}"><i class="fas fa-users"></i> Data Pegawai</a></li>
-    <li class="menu-item"><a href="{{ route('admin.locations.index') }}"><i class="fas fa-map-marker-alt"></i> Lokasi
-            Kantor</a></li>
-    <li class="menu-item"><a href="{{ route('admin.shifts.index') }}"><i class="fas fa-clock"></i> Data Shift</a></li>
-    <li class="menu-item"><a href="{{ route('admin.security-schedules.index') }}"><i class="fas fa-calendar-alt"></i> Jadwal Security</a></li>
-    <li class="menu-label">Laporan</li>
-    <li class="menu-item"><a href="{{ route('admin.reports') }}"><i class="fas fa-file-alt"></i> Rekap Absensi</a></li>
-    <li class="menu-item"><a href="{{ route('admin.leave-requests.index') }}" class="active"><i
+    <li class="menu-item"><a href="{{ route('monitoring.dashboard') }}"><i class="fas fa-desktop"></i> Dashboard</a></li>
+    <li class="menu-item"><a href="{{ route('monitoring.reports') }}"><i class="fas fa-file-invoice"></i> Laporan Detail</a></li>
+    <li class="menu-item"><a href="{{ route('monitoring.leave-requests.index') }}" class="active"><i
                 class="fas fa-envelope-open-text"></i> Pengajuan Izin</a></li>
 @endsection
 
 @section('content')
-    <div class="card mb-4" style="max-width: 400px;">
+    <div class="card mb-4" style="max-width: 420px;">
         <div class="card-body">
-            <form action="{{ route('admin.leave-requests.index') }}" method="GET" style="display: flex; gap: 10px;">
+            <form action="{{ route('monitoring.leave-requests.index') }}" method="GET" style="display: flex; gap: 10px;">
                 <select name="status" class="form-control" onchange="this.form.submit()">
                     <option value="">Semua Status Pengajuan</option>
                     <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Menunggu Persetujuan
@@ -54,6 +48,7 @@
                                 <td>{{ $req->created_at->format('d/m/Y H:i') }}</td>
                                 <td>
                                     <div style="font-weight: 600;">{{ $req->user->name }}</div>
+                                    <small style="color: var(--text-secondary);">NIP: {{ $req->user->nip ?? '-' }}</small>
                                 </td>
                                 <td>
                                     <div><span class="badge badge-info">{{ strtoupper($req->type) }}</span></div>
@@ -61,7 +56,7 @@
                                         {{ $req->start_date->format('d/m/Y') }} - {{ $req->end_date->format('d/m/Y') }}
                                     </small>
                                 </td>
-                                <td>{{ Str::limit($req->reason, 50) }}</td>
+                                <td>{{ Str::limit($req->reason, 60) }}</td>
                                 <td>
                                     @if($req->attachment)
                                         <a href="{{ asset('storage/' . $req->attachment) }}" target="_blank"
@@ -73,14 +68,16 @@
                                 <td>
                                     <span class="badge badge-{{ $req->status_badge }}">{{ ucfirst($req->status) }}</span>
                                     @if($req->status != 'pending')
-                                        <small style="display: block; margin-top: 4px; color: var(--text-secondary);">Oleh:
-                                            {{ $req->approvedByUser->name ?? '-' }}</small>
+                                        <small style="display: block; margin-top: 4px; color: var(--text-secondary);">
+                                            Oleh: {{ $req->approvedByUser->name ?? '-' }}
+                                        </small>
                                     @endif
                                 </td>
                                 <td>
                                     @if($req->status == 'pending')
                                         <div style="display: flex; gap: 6px;">
-                                            <form action="{{ route('admin.leave-requests.approve', $req->id) }}" method="POST">
+                                            <form action="{{ route('monitoring.leave-requests.approve', $req->id) }}"
+                                                method="POST">
                                                 @csrf
                                                 <button type="submit" class="btn btn-sm btn-success" title="Setujui"
                                                     onclick="return confirm('Setujui pengajuan ini?')"><i
@@ -121,7 +118,6 @@
         @endif
     </div>
 
-    <!-- Modal Tolak -->
     <div id="rejectModal"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center;">
         <div style="background: white; padding: 24px; border-radius: var(--radius); width: 400px; max-width: 90%;">
@@ -146,7 +142,7 @@
 @section('scripts')
     <script>
         function showRejectModal(id) {
-            document.getElementById('rejectForm').action = "/admin/leave-requests/" + id + "/reject";
+            document.getElementById('rejectForm').action = "/monitoring/leave-requests/" + id + "/reject";
             document.getElementById('rejectModal').style.display = 'flex';
         }
     </script>

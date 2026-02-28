@@ -35,6 +35,8 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->namespace('Admin')->
         'update' => 'admin.employees.update',
         'destroy' => 'admin.employees.destroy',
     ]);
+    Route::post('/employees/{id}/send-credentials', 'EmployeeController@sendCredentials')
+        ->name('admin.employees.send-credentials');
 
     // CRUD Lokasi
     Route::resource('locations', 'LocationController')->names([
@@ -55,6 +57,10 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->namespace('Admin')->
         'update' => 'admin.shifts.update',
         'destroy' => 'admin.shifts.destroy',
     ]);
+
+    // Jadwal Shift Security Mingguan
+    Route::get('/security-schedules', 'SecurityShiftScheduleController@index')->name('admin.security-schedules.index');
+    Route::post('/security-schedules/weekly-template', 'SecurityShiftScheduleController@storeWeeklyTemplate')->name('admin.security-schedules.weekly.store');
 
     // Laporan Absensi
     Route::get('/reports', 'AttendanceReportController@index')->name('admin.reports');
@@ -84,6 +90,11 @@ Route::prefix('pegawai')->middleware(['auth', 'role:pegawai'])->namespace('Pegaw
     Route::get('/leave-requests', 'LeaveRequestController@index')->name('pegawai.leave-requests.index');
     Route::get('/leave-requests/create', 'LeaveRequestController@create')->name('pegawai.leave-requests.create');
     Route::post('/leave-requests', 'LeaveRequestController@store')->name('pegawai.leave-requests.store');
+
+    // Akun
+    Route::get('/account/password', 'AccountController@editPassword')->name('pegawai.account.password.edit');
+    Route::put('/account/password', 'AccountController@updatePassword')->name('pegawai.account.password.update');
+    Route::post('/account/profile-photo', 'AccountController@updateProfilePhoto')->name('pegawai.account.profile-photo.update');
 });
 
 // =====================================================================
@@ -93,4 +104,7 @@ Route::prefix('monitoring')->middleware(['auth', 'role:monitoring'])->namespace(
     Route::get('/dashboard', 'DashboardController@index')->name('monitoring.dashboard');
     Route::get('/reports', 'ReportController@index')->name('monitoring.reports');
     Route::get('/reports/{userId}', 'ReportController@detail')->name('monitoring.detail');
+    Route::get('/leave-requests', 'LeaveRequestController@index')->name('monitoring.leave-requests.index');
+    Route::post('/leave-requests/{id}/approve', 'LeaveRequestController@approve')->name('monitoring.leave-requests.approve');
+    Route::post('/leave-requests/{id}/reject', 'LeaveRequestController@reject')->name('monitoring.leave-requests.reject');
 });

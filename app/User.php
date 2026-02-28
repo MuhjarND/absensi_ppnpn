@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -21,6 +22,7 @@ class User extends Authenticatable
         'is_security',
         'shift_id',
         'is_active',
+        'profile_photo',
     ];
 
     protected $hidden = [
@@ -54,6 +56,11 @@ class User extends Authenticatable
         return $this->hasMany(LeaveRequest::class);
     }
 
+    public function securityShiftWeeklySchedules()
+    {
+        return $this->hasMany(SecurityShiftWeeklySchedule::class);
+    }
+
     public function isAdmin()
     {
         return $this->role && $this->role->name === 'admin';
@@ -80,8 +87,39 @@ class User extends Authenticatable
      */
     public function getActiveShift()
     {
-        if ($this->is_security && $this->shift) {
-            return $this->shift;
+        return $this->getShiftByDate(now());
+    }
+
+    /**
+     * Get shift by specific date.
+     * Security users can have a daily shift schedule.
+     */
+    public function getShiftByDate($date)
+    {
+        $targetCarbon = null;
+
+        if (empty($date)) {
+            $targetDate = now()->toDateString();
+            $targetCarbon = now();
+        } else {
+            $targetCarbon = $date instanceof Carbon ? $date : Carbon::parse($date);
+            $targetDate = $targetCarbon->toDateString();
+        }
+
+        if ($this->is_security) {
+            $dayOfWeek = ($targetCarbon ?: Carbon::parse($targetDate))->dayOfWeek;
+            $weeklySchedule = $this->securityShiftWeeklySchedules()
+                ->with('shift')
+                ->where('day_of_week', $dayOfWeek)
+                ->first();
+
+            if ($weeklySchedule && $weeklySchedule->shift) {
+                return $weeklySchedule->shift;
+            }
+
+            if ($this->shift) {
+                return $this->shift;
+            }
         }
 
         return Shift::where('name', 'Reguler')->first();

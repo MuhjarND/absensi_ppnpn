@@ -14,6 +14,8 @@
     <li class="menu-item"><a href="{{ route('pegawai.history') }}"><i class="fas fa-history"></i> Riwayat Absensi</a></li>
     <li class="menu-item"><a href="{{ route('pegawai.leave-requests.index') }}"><i class="fas fa-envelope-open-text"></i>
             Pengajuan Izin</a></li>
+    <li class="menu-label">Akun</li>
+    <li class="menu-item"><a href="{{ route('pegawai.account.password.edit') }}" class="{{ request()->routeIs('pegawai.account.password.*') ? 'active' : '' }}"><i class="fas fa-key"></i> Ubah Password</a></li>
 @endsection
 
 @section('content')
@@ -25,7 +27,12 @@
             <div class="card-body text-center" style="display: flex; flex-direction: column; align-items: center;">
                 <div
                     style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; margin-bottom: 16px;">
-                    {{ strtoupper(substr($user->name, 0, 1)) }}
+                    @if($user->profile_photo)
+                        <img src="{{ asset('storage/' . $user->profile_photo) }}" alt="Foto Profil"
+                            style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                    @else
+                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                    @endif
                 </div>
                 <h4 style="margin: 0 0 4px; font-weight: 700;">{{ $user->name }}</h4>
                 <div style="color: var(--text-secondary); margin-bottom: 4px;">{{ $user->nip ?? 'NIP: -' }}</div>

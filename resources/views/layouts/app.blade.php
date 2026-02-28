@@ -74,7 +74,11 @@
                         <div class="user-role">{{ Auth::user()->role->display_name ?? 'User' }}</div>
                     </div>
                     <div class="user-avatar">
-                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                        @if(Auth::user()->profile_photo)
+                            <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="Foto Profil" class="user-avatar-img">
+                        @else
+                            {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                        @endif
                     </div>
                 </div>
             @endauth

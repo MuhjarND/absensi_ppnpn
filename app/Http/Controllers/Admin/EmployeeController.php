@@ -7,7 +7,11 @@ use App\User;
 use App\Role;
 use App\Shift;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Throwable;
 
 class EmployeeController extends Controller
 {
@@ -113,5 +117,104 @@ class EmployeeController extends Controller
 
         return redirect()->route('admin.employees.index')
             ->with('success', 'Pegawai berhasil dinonaktifkan.');
+    }
+
+    public function sendCredentials($id)
+    {
+        $employee = User::findOrFail($id);
+
+        if (!$employee->is_active) {
+            return redirect()->back()->with('error', 'Pegawai tidak aktif. Tidak dapat mengirim kredensial.');
+        }
+
+        if (empty($employee->phone)) {
+            return redirect()->back()->with('error', 'Nomor WhatsApp pegawai belum diisi.');
+        }
+
+        $fonnteToken = config('services.fonnte.token');
+        $fonnteEndpoint = config('services.fonnte.endpoint');
+
+        if (empty($fonnteToken)) {
+            return redirect()->back()->with('error', 'Token Fonnte belum dikonfigurasi.');
+        }
+
+        $target = $this->normalizeWhatsappNumber($employee->phone);
+        if (empty($target)) {
+            return redirect()->back()->with('error', 'Nomor WhatsApp pegawai tidak valid.');
+        }
+
+        $plainPassword = Str::random(10);
+        $employee->update(['password' => Hash::make($plainPassword)]);
+
+        $message = $this->buildCredentialsMessage($employee, $plainPassword);
+
+        try {
+            $response = Http::timeout(20)
+                ->withHeaders([
+                    'Authorization' => $fonnteToken,
+                ])
+                ->asForm()
+                ->post($fonnteEndpoint, [
+                    'target' => $target,
+                    'message' => $message,
+                ]);
+
+            if (!$response->successful()) {
+                Log::warning('Fonnte request failed', [
+                    'employee_id' => $employee->id,
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+
+                return redirect()->back()->with('error', 'Gagal mengirim WhatsApp: respons API tidak valid.');
+            }
+
+            $payload = $response->json();
+            $isSent = is_array($payload) ? (bool) ($payload['status'] ?? false) : false;
+
+            if (!$isSent) {
+                $reason = is_array($payload) ? ($payload['reason'] ?? $payload['message'] ?? 'Tidak diketahui') : 'Tidak diketahui';
+                return redirect()->back()->with('error', 'Gagal mengirim WhatsApp: ' . $reason);
+            }
+        } catch (Throwable $e) {
+            Log::error('Failed to send employee credentials via Fonnte', [
+                'employee_id' => $employee->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat mengirim WhatsApp.');
+        }
+
+        return redirect()->back()->with('success', 'Kredensial berhasil dikirim ke WhatsApp pegawai.');
+    }
+
+    private function normalizeWhatsappNumber($phone)
+    {
+        $digits = preg_replace('/[^0-9]/', '', $phone);
+        if (empty($digits)) {
+            return null;
+        }
+
+        if (Str::startsWith($digits, '0')) {
+            return '62' . substr($digits, 1);
+        }
+
+        if (Str::startsWith($digits, '62')) {
+            return $digits;
+        }
+
+        return $digits;
+    }
+
+    private function buildCredentialsMessage(User $employee, $plainPassword)
+    {
+        $loginUrl = url('/login');
+
+        return "Halo {$employee->name},\n\n" .
+            "Akun Absensi PPNPN Anda:\n" .
+            "Username: {$employee->email}\n" .
+            "Password: {$plainPassword}\n\n" .
+            "Login di: {$loginUrl}\n" .
+            "Silakan segera login dan ubah password Anda.";
     }
 }

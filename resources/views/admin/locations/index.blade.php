@@ -12,6 +12,7 @@
     <li class="menu-item"><a href="{{ route('admin.locations.index') }}" class="active"><i
                 class="fas fa-map-marker-alt"></i> Lokasi Kantor</a></li>
     <li class="menu-item"><a href="{{ route('admin.shifts.index') }}"><i class="fas fa-clock"></i> Data Shift</a></li>
+    <li class="menu-item"><a href="{{ route('admin.security-schedules.index') }}"><i class="fas fa-calendar-alt"></i> Jadwal Security</a></li>
     <li class="menu-label">Laporan</li>
     <li class="menu-item"><a href="{{ route('admin.reports') }}"><i class="fas fa-file-alt"></i> Rekap Absensi</a></li>
     <li class="menu-item"><a href="{{ route('admin.leave-requests.index') }}"><i class="fas fa-envelope-open-text"></i>

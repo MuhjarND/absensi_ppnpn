@@ -13,6 +13,7 @@
     <li class="menu-item"><a href="{{ route('admin.locations.index') }}"><i class="fas fa-map-marker-alt"></i> Lokasi
             Kantor</a></li>
     <li class="menu-item"><a href="{{ route('admin.shifts.index') }}"><i class="fas fa-clock"></i> Data Shift</a></li>
+    <li class="menu-item"><a href="{{ route('admin.security-schedules.index') }}"><i class="fas fa-calendar-alt"></i> Jadwal Security</a></li>
     <li class="menu-label">Laporan</li>
     <li class="menu-item"><a href="{{ route('admin.reports') }}"><i class="fas fa-file-alt"></i> Rekap Absensi</a></li>
     <li class="menu-item"><a href="{{ route('admin.leave-requests.index') }}"><i class="fas fa-envelope-open-text"></i>
@@ -40,7 +41,7 @@
                             <th>Kontak</th>
                             <th>Role / Shift</th>
                             <th>Status</th>
-                            <th width="150">Aksi</th>
+                            <th width="210">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -76,6 +77,17 @@
                                         class="btn btn-sm btn-outline-primary" title="Edit Data">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    @if($employee->is_active)
+                                        <form action="{{ route('admin.employees.send-credentials', $employee->id) }}" method="POST"
+                                            style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-success" title="Kirim Username & Password via WhatsApp"
+                                                onclick="return confirm('Kirim username dan password baru ke WhatsApp pegawai ini? Password login pegawai akan direset.')"
+                                                {{ empty($employee->phone) ? 'disabled' : '' }}>
+                                                <i class="fab fa-whatsapp"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                     @if($employee->is_active)
                                         <form action="{{ route('admin.employees.destroy', $employee->id) }}" method="POST"
                                             style="display:inline;">
