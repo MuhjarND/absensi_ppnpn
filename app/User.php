@@ -145,15 +145,10 @@ class User extends Authenticatable
      */
     public function pendingClockOutAttendance($dateTime = null)
     {
-        $targetCarbon = $dateTime instanceof Carbon
-            ? $dateTime
-            : ($dateTime ? Carbon::parse($dateTime) : now());
-
         return $this->attendances()
             ->with('shift')
             ->whereNotNull('clock_in')
             ->whereNull('clock_out')
-            ->whereDate('date', '>=', $targetCarbon->copy()->subDay()->toDateString())
             ->orderBy('clock_in', 'desc')
             ->first();
     }
