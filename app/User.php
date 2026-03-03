@@ -139,6 +139,25 @@ class User extends Authenticatable
         return $this->attendances()->where('date', now()->toDateString())->first();
     }
 
+    /**
+     * Get latest attendance that has clock-in but not clock-out yet.
+     * Includes overnight cases that start yesterday and finish today.
+     */
+    public function pendingClockOutAttendance($dateTime = null)
+    {
+        $targetCarbon = $dateTime instanceof Carbon
+            ? $dateTime
+            : ($dateTime ? Carbon::parse($dateTime) : now());
+
+        return $this->attendances()
+            ->with('shift')
+            ->whereNotNull('clock_in')
+            ->whereNull('clock_out')
+            ->whereDate('date', '>=', $targetCarbon->copy()->subDay()->toDateString())
+            ->orderBy('clock_in', 'desc')
+            ->first();
+    }
+
     public function isScheduledOffByDate($date = null)
     {
         if (!$this->is_security) {

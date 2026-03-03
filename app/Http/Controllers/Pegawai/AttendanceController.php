@@ -17,11 +17,19 @@ class AttendanceController extends Controller
     {
         $user = Auth::user();
         $todayAttendance = $user->todayAttendance();
+        $pendingClockOutAttendance = $user->pendingClockOutAttendance();
         $shift = $user->getActiveShift();
         $isOffToday = $user->isScheduledOffByDate(now());
         $locations = Location::active()->get();
 
-        return view('pegawai.attendance', compact('user', 'todayAttendance', 'shift', 'locations', 'isOffToday'));
+        return view('pegawai.attendance', compact(
+            'user',
+            'todayAttendance',
+            'pendingClockOutAttendance',
+            'shift',
+            'locations',
+            'isOffToday'
+        ));
     }
 
     public function clockIn(Request $request)
@@ -33,6 +41,13 @@ class AttendanceController extends Controller
         ]);
 
         $user = Auth::user();
+        $pendingClockOutAttendance = $user->pendingClockOutAttendance();
+
+        if ($pendingClockOutAttendance) {
+            return response()->json([
+                'error' => 'Anda masih punya absen masuk yang belum ditutup. Silakan absen pulang terlebih dahulu.'
+            ], 422);
+        }
 
         if ($user->isScheduledOffByDate(now())) {
             return response()->json(['error' => 'Hari ini Anda dijadwalkan libur, absen masuk tidak diperlukan.'], 422);
@@ -107,14 +122,10 @@ class AttendanceController extends Controller
         ]);
 
         $user = Auth::user();
-        $attendance = $user->todayAttendance();
+        $attendance = $user->pendingClockOutAttendance();
 
         if (!$attendance) {
-            return response()->json(['error' => 'Anda belum melakukan absen masuk hari ini.'], 422);
-        }
-
-        if ($attendance->clock_out) {
-            return response()->json(['error' => 'Anda sudah melakukan absen pulang hari ini.'], 422);
+            return response()->json(['error' => 'Tidak ada data absen masuk yang perlu dipulangkan.'], 422);
         }
 
         // Validate location

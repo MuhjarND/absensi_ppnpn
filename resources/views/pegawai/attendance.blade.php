@@ -85,12 +85,23 @@
 
                 <!-- Actions -->
                 <div class="attendance-actions">
-                    @if($isOffToday && !$todayAttendance)
+                    @if($isOffToday && !$pendingClockOutAttendance && !$todayAttendance)
                         <div
                             style="background: rgba(245, 158, 11, 0.1); color: var(--warning); padding: 16px; border-radius: var(--radius); text-align: center; border: 1px dashed var(--warning); width: 100%;">
                             <h4><i class="fas fa-calendar-times"></i> Hari Ini Libur</h4>
                             <p style="margin: 5px 0 0; font-size: 14px;">Anda tidak perlu melakukan absen masuk atau pulang.</p>
                         </div>
+                    @elseif($pendingClockOutAttendance)
+                        <!-- Ada absen masuk yang belum pulang (termasuk shift malam lintas tanggal) -->
+                        <div
+                            style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 12px; border-radius: var(--radius); text-align: center; border: 1px dashed var(--success); margin-bottom: 0; width: 100%;">
+                            <i class="fas fa-check-circle"></i> Sudah absen masuk pada
+                            {{ $pendingClockOutAttendance->clock_in->format('d/m/Y H:i') }}
+                        </div>
+                        <button type="button" class="btn btn-primary" id="btn-clock-out" onclick="submitAttendance('out')"
+                            disabled style="box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4); margin-top: 10px;">
+                            <i class="fas fa-sign-out-alt"></i> Absen Pulang Sekarang
+                        </button>
                     @elseif(!$todayAttendance)
                         <!-- Belum absen masuk -->
                         <button type="button" class="btn btn-success" id="btn-clock-in" onclick="submitAttendance('in')"
