@@ -14,6 +14,7 @@ class DashboardController extends Controller
         $user = Auth::user();
         $today = Carbon::today();
         $todayAttendance = $user->todayAttendance();
+        $pendingClockOutAttendance = $user->pendingClockOutAttendance();
 
         $shift = $user->getActiveShift();
         $isOffToday = $user->isScheduledOffByDate(now());
@@ -31,6 +32,7 @@ class DashboardController extends Controller
         return view('pegawai.dashboard', compact(
             'user',
             'todayAttendance',
+            'pendingClockOutAttendance',
             'shift',
             'isOffToday',
             'totalHadir',

@@ -61,7 +61,43 @@
                 <small style="color: var(--text-secondary);">{{ now()->translatedFormat('l, d F Y') }}</small>
             </div>
             <div class="card-body">
-                @if(!$todayAttendance)
+                @if($pendingClockOutAttendance)
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 16px;">
+                        <div
+                            style="display: flex; align-items: center; justify-content: space-between; background: var(--body-bg); padding: 16px; border-radius: var(--radius-sm); border-left: 4px solid var(--success);">
+                            <div>
+                                <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Jam Masuk</div>
+                                <div style="font-weight: 700; font-size: 18px; color: var(--text-primary);">
+                                    {{ $pendingClockOutAttendance->clock_in ? $pendingClockOutAttendance->clock_in->format('d/m H:i:s') : '-' }}</div>
+                            </div>
+                            <div
+                                style="background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 50%; color: var(--success);">
+                                <i class="fas fa-sign-in-alt"></i></div>
+                        </div>
+
+                        <div
+                            style="display: flex; align-items: center; justify-content: space-between; background: var(--body-bg); padding: 16px; border-radius: var(--radius-sm); border-left: 4px solid var(--warning);">
+                            <div>
+                                <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Jam Pulang</div>
+                                <div style="font-weight: 700; font-size: 14px; color: var(--warning);">Belum Absen Pulang</div>
+                            </div>
+                            <div
+                                style="background: rgba(245, 158, 11, 0.1); padding: 10px; border-radius: 50%; color: var(--warning);">
+                                <i class="fas fa-sign-out-alt"></i></div>
+                        </div>
+
+                        <div
+                            style="display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px dashed var(--border);">
+                            <span style="font-size: 14px; font-weight: 600;">Status Hari Ini</span>
+                            <span class="badge badge-warning" style="font-size: 14px; padding: 6px 14px;">Menunggu Pulang</span>
+                        </div>
+
+                        <a href="{{ route('pegawai.attendance') }}" class="btn btn-primary"
+                            style="width: 100%; justify-content: center; margin-top: 10px;">
+                            <i class="fas fa-sign-out-alt"></i> Absen Pulang Sekarang
+                        </a>
+                    </div>
+                @elseif(!$todayAttendance)
                     <div class="text-center" style="padding: 20px 0;">
                         <div
                             style="width: 64px; height: 64px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); color: var(--danger); display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 16px;">
