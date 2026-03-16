@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Monitoring;
 use App\Http\Controllers\Controller;
 use App\Attendance;
 use App\User;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -12,11 +14,74 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
+        list($startDate, $endDate, $search) = $this->resolveReportFilters($request);
+
+        $users = $this->buildReportUsersQuery($startDate, $endDate, $search)
+            ->paginate(20);
+
+        return view('monitoring.reports', compact('users', 'startDate', 'endDate'));
+    }
+
+    public function exportPdf(Request $request)
+    {
+        list($startDate, $endDate, $search) = $this->resolveReportFilters($request);
+
+        $users = $this->buildReportUsersQuery($startDate, $endDate, $search)->get();
+        $kopImageData = $this->getKopImageData();
+
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', true);
+
+        $dompdf = new Dompdf($options);
+        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->loadHtml(view('monitoring.reports-pdf', [
+            'users' => $users,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'search' => $search,
+            'kopImageData' => $kopImageData,
+            'generatedAt' => now(),
+        ])->render());
+        $dompdf->render();
+
+        $fileName = 'laporan-monitoring-' . $startDate->format('Ymd') . '-' . $endDate->format('Ymd') . '.pdf';
+        $disposition = $request->boolean('print') ? 'inline' : 'attachment';
+
+        return response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => $disposition . '; filename="' . $fileName . '"',
+        ]);
+    }
+
+    public function detail(Request $request, $userId)
+    {
+        $employee = User::with('role', 'shift')->findOrFail($userId);
+
+        $startDate = $request->start_date ? Carbon::parse($request->start_date) : Carbon::now()->startOfMonth();
+        $endDate = $request->end_date ? Carbon::parse($request->end_date) : Carbon::now();
+
+        $attendances = Attendance::with(['clockInLocation', 'clockOutLocation'])
+            ->byUser($userId)
+            ->byDateRange($startDate->toDateString(), $endDate->toDateString())
+            ->orderBy('date', 'desc')
+            ->paginate(20);
+
+        return view('monitoring.employee-detail', compact('employee', 'attendances', 'startDate', 'endDate'));
+    }
+
+    private function resolveReportFilters(Request $request)
+    {
         $startDate = $request->start_date ? Carbon::parse($request->start_date) : Carbon::now()->startOfMonth();
         $endDate = $request->end_date ? Carbon::parse($request->end_date) : Carbon::now();
         $search = trim((string) $request->search);
 
-        $users = User::whereHas('role', function ($q) {
+        return [$startDate, $endDate, $search];
+    }
+
+    private function buildReportUsersQuery(Carbon $startDate, Carbon $endDate, $search = '')
+    {
+        return User::whereHas('role', function ($q) {
             $q->where('name', 'pegawai');
         })
             ->where('is_active', true)
@@ -44,25 +109,19 @@ class ReportController extends Controller
                         ->where('status', 'alpha');
                 },
             ])
-            ->orderBy('name')
-            ->paginate(20);
-
-        return view('monitoring.reports', compact('users', 'startDate', 'endDate'));
+            ->orderBy('name');
     }
 
-    public function detail(Request $request, $userId)
+    private function getKopImageData()
     {
-        $employee = User::with('role', 'shift')->findOrFail($userId);
+        $kopPath = public_path('kop.jpeg');
 
-        $startDate = $request->start_date ? Carbon::parse($request->start_date) : Carbon::now()->startOfMonth();
-        $endDate = $request->end_date ? Carbon::parse($request->end_date) : Carbon::now();
+        if (!file_exists($kopPath)) {
+            return null;
+        }
 
-        $attendances = Attendance::with(['clockInLocation', 'clockOutLocation'])
-            ->byUser($userId)
-            ->byDateRange($startDate->toDateString(), $endDate->toDateString())
-            ->orderBy('date', 'desc')
-            ->paginate(20);
+        $mimeType = function_exists('mime_content_type') ? mime_content_type($kopPath) : 'image/jpeg';
 
-        return view('monitoring.employee-detail', compact('employee', 'attendances', 'startDate', 'endDate'));
+        return 'data:' . $mimeType . ';base64,' . base64_encode(file_get_contents($kopPath));
     }
 }

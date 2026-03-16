@@ -108,6 +108,7 @@ Route::prefix('pegawai')->middleware(['auth', 'role:pegawai'])->namespace('Pegaw
 Route::prefix('monitoring')->middleware(['auth', 'role:monitoring'])->namespace('Monitoring')->group(function () {
     Route::get('/dashboard', 'DashboardController@index')->name('monitoring.dashboard');
     Route::get('/reports', 'ReportController@index')->name('monitoring.reports');
+    Route::get('/reports/export/pdf', 'ReportController@exportPdf')->name('monitoring.reports.export-pdf');
     Route::get('/reports/{userId}', 'ReportController@detail')->name('monitoring.detail');
     Route::get('/leave-requests', 'LeaveRequestController@index')->name('monitoring.leave-requests.index');
     Route::post('/leave-requests/{id}/approve', 'LeaveRequestController@approve')->name('monitoring.leave-requests.approve');

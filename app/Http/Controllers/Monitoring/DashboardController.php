@@ -38,7 +38,14 @@ class DashboardController extends Controller
             ->count();
 
         $todayAttendances = Attendance::with(['user', 'shift', 'clockInLocation', 'clockOutLocation'])
-            ->where('date', $today)
+            ->where(function ($query) use ($today) {
+                $query->whereDate('date', $today->toDateString())
+                    ->orWhere(function ($openQuery) use ($today) {
+                        $openQuery->whereDate('date', '<', $today->toDateString())
+                            ->whereNotNull('clock_in')
+                            ->whereNull('clock_out');
+                    });
+            })
             ->orderBy('clock_in', 'desc')
             ->get();
 

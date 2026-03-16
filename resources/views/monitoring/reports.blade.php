@@ -38,6 +38,18 @@
                     <button type="submit" class="btn btn-primary" style="flex: 1;"><i class="fas fa-search"></i> Cari
                         Data</button>
                 </div>
+                <div class="form-group mb-0" style="display: flex;">
+                    <a href="{{ route('monitoring.reports.export-pdf', ['start_date' => request('start_date', $startDate->format('Y-m-d')), 'end_date' => request('end_date', $endDate->format('Y-m-d')), 'search' => request('search')]) }}"
+                        class="btn btn-outline-danger" style="flex: 1; justify-content: center;">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </a>
+                </div>
+                <div class="form-group mb-0" style="display: flex;">
+                    <a href="{{ route('monitoring.reports.export-pdf', ['start_date' => request('start_date', $startDate->format('Y-m-d')), 'end_date' => request('end_date', $endDate->format('Y-m-d')), 'search' => request('search'), 'print' => 1]) }}"
+                        class="btn btn-outline-secondary" style="flex: 1; justify-content: center;" target="_blank">
+                        <i class="fas fa-print"></i> Cetak PDF
+                    </a>
+                </div>
             </form>
         </div>
     </div>
