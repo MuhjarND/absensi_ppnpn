@@ -82,4 +82,27 @@ class Attendance extends Model
 
         return $badges[$this->status] ?? 'light';
     }
+
+    public function getWorkDurationMinutesAttribute()
+    {
+        if (!$this->clock_in || !$this->clock_out) {
+            return 0;
+        }
+
+        return $this->clock_out->diffInMinutes($this->clock_in);
+    }
+
+    public function getFormattedWorkDurationAttribute()
+    {
+        return static::formatWorkDuration($this->work_duration_minutes);
+    }
+
+    public static function formatWorkDuration($minutes)
+    {
+        $minutes = max(0, (int) $minutes);
+        $hours = (int) floor($minutes / 60);
+        $remainingMinutes = $minutes % 60;
+
+        return $hours . 'j ' . str_pad((string) $remainingMinutes, 2, '0', STR_PAD_LEFT) . 'm';
+    }
 }

@@ -44,6 +44,23 @@
 
     <!-- Riwayat Absensi -->
     <div>
+        <div class="stats-grid" style="margin-bottom: 20px;">
+            <div class="stat-card info">
+                <div class="stat-icon info"><i class="fas fa-business-time"></i></div>
+                <div class="stat-content">
+                    <h3 style="font-size: 22px;">{{ $workDurationSummary['average_daily_duration'] }}</h3>
+                    <p>Rata-rata Jam Kerja / Hari</p>
+                </div>
+            </div>
+            <div class="stat-card primary">
+                <div class="stat-icon primary"><i class="fas fa-clock"></i></div>
+                <div class="stat-content">
+                    <h3 style="font-size: 22px;">{{ $workDurationSummary['total_duration'] }}</h3>
+                    <p>Total Jam Kerja / Bulan</p>
+                </div>
+            </div>
+        </div>
+
         <div class="card mb-4">
             <div class="card-header border-bottom-0 pb-0" style="display: flex; justify-content: space-between; align-items: center;">
                 <h5>Riwayat Absensi</h5>
@@ -57,6 +74,7 @@
                                 <th>Tanggal</th>
                                 <th>Jam Masuk</th>
                                 <th>Jam Pulang</th>
+                                <th>Jam Kerja</th>
                                 <th>Status</th>
                                 <th width="80">Foto</th>
                             </tr>
@@ -83,6 +101,13 @@
                                         @endif
                                     </td>
                                     <td>
+                                        @if($attendance->clock_in && $attendance->clock_out)
+                                            <span style="font-weight: 600;">{{ $attendance->formatted_work_duration }}</span>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td>
                                         <span class="badge badge-{{ $attendance->status_badge }}">{{ ucfirst($attendance->status) }}</span>
                                     </td>
                                     <td>
@@ -93,7 +118,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center py-4">
+                                    <td colspan="6" class="text-center py-4">
                                         <div class="empty-state">
                                             <i class="fas fa-calendar-times"></i>
                                             <h5>Riwayat Kosong</h5>

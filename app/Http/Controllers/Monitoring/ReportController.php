@@ -17,6 +17,7 @@ class ReportController extends Controller
 
         $users = $this->buildReportUsersQuery($startDate, $endDate, $search)
             ->paginate(20);
+        $this->appendWorkDurationSummaries($users);
 
         return view('monitoring.reports', compact('users', 'startDate', 'endDate'));
     }
@@ -31,6 +32,7 @@ class ReportController extends Controller
         list($startDate, $endDate, $search) = $this->resolveReportFilters($request);
 
         $users = $this->buildReportUsersQuery($startDate, $endDate, $search)->get();
+        $this->appendWorkDurationSummaries($users);
         $kopImageData = $this->getKopImageData();
 
         $dompdf = new Dompdf();
@@ -71,7 +73,19 @@ class ReportController extends Controller
             ->orderBy('date', 'desc')
             ->paginate(20);
 
-        return view('monitoring.employee-detail', compact('employee', 'attendances', 'startDate', 'endDate'));
+        $workDurationSummary = $this->calculateWorkDurationSummary(
+            Attendance::byUser($userId)
+                ->byDateRange($startDate->toDateString(), $endDate->toDateString())
+                ->get(['clock_in', 'clock_out'])
+        );
+
+        return view('monitoring.employee-detail', compact(
+            'employee',
+            'attendances',
+            'startDate',
+            'endDate',
+            'workDurationSummary'
+        ));
     }
 
     private function resolveReportFilters(Request $request)
@@ -113,12 +127,59 @@ class ReportController extends Controller
                         ->where('status', 'alpha');
                 },
             ])
+            ->with([
+                'attendances' => function ($query) use ($startDate, $endDate) {
+                    $query->select('id', 'user_id', 'clock_in', 'clock_out')
+                        ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()]);
+                },
+            ])
             ->orderBy('name');
+    }
+
+    private function appendWorkDurationSummaries($users)
+    {
+        $collection = method_exists($users, 'getCollection') ? $users->getCollection() : $users;
+
+        $collection->transform(function ($user) {
+            $summary = $this->calculateWorkDurationSummary($user->attendances ?? collect());
+            $user->average_daily_work_minutes = $summary['average_daily_minutes'];
+            $user->average_daily_work_duration = $summary['average_daily_duration'];
+            $user->total_work_minutes = $summary['total_minutes'];
+            $user->total_work_duration = $summary['total_duration'];
+
+            return $user;
+        });
+
+        if (method_exists($users, 'setCollection')) {
+            $users->setCollection($collection);
+        }
+
+        return $users;
+    }
+
+    private function calculateWorkDurationSummary($attendances)
+    {
+        $completedAttendances = $attendances->filter(function ($attendance) {
+            return $attendance->clock_in && $attendance->clock_out;
+        });
+
+        $totalMinutes = $completedAttendances->sum(function ($attendance) {
+            return $attendance->clock_out->diffInMinutes($attendance->clock_in);
+        });
+        $completedDays = $completedAttendances->count();
+        $averageDailyMinutes = $completedDays > 0 ? (int) round($totalMinutes / $completedDays) : 0;
+
+        return [
+            'total_minutes' => $totalMinutes,
+            'total_duration' => Attendance::formatWorkDuration($totalMinutes),
+            'average_daily_minutes' => $averageDailyMinutes,
+            'average_daily_duration' => Attendance::formatWorkDuration($averageDailyMinutes),
+        ];
     }
 
     private function getKopImageData()
     {
-        $kopPath = public_path('kop.jpeg');
+        $kopPath = public_path('kop_laporan.jpg');
 
         if (!file_exists($kopPath)) {
             return null;

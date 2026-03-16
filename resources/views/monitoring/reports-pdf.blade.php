@@ -106,6 +106,8 @@
                 <th style="width: 70px;">Terlambat</th>
                 <th style="width: 70px;">Izin/Sakit</th>
                 <th style="width: 70px;">Alpha</th>
+                <th style="width: 82px;">Jam/Hari</th>
+                <th style="width: 82px;">Jam/Bulan</th>
             </tr>
         </thead>
         <tbody>
@@ -122,10 +124,12 @@
                     <td class="number">{{ $user->total_terlambat }}</td>
                     <td class="number">{{ $user->total_izin }}</td>
                     <td class="number">{{ $user->total_alpha }}</td>
+                    <td class="number">{{ $user->average_daily_work_duration }}</td>
+                    <td class="number">{{ $user->total_work_duration }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" class="number">Tidak ada data pegawai pada periode ini.</td>
+                    <td colspan="10" class="number">Tidak ada data pegawai pada periode ini.</td>
                 </tr>
             @endforelse
         </tbody>

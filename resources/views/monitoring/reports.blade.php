@@ -255,6 +255,8 @@
                                 <th class="text-center">Terlambat</th>
                                 <th class="text-center">Izin / Sakit</th>
                                 <th class="text-center">Alpha / Kosong</th>
+                                <th class="text-center">Jam / Hari</th>
+                                <th class="text-center">Jam / Bulan</th>
                                 <th width="148">Aksi</th>
                             </tr>
                         </thead>
@@ -274,6 +276,14 @@
                                     <td class="text-center"><span class="metric-pill warning">{{ $user->total_terlambat }}</span></td>
                                     <td class="text-center"><span class="metric-pill info">{{ $user->total_izin }}</span></td>
                                     <td class="text-center"><span class="metric-pill danger">{{ $user->total_alpha }}</span></td>
+                                    <td class="text-center">
+                                        <div style="font-weight: 700;">{{ $user->average_daily_work_duration }}</div>
+                                        <small style="color: var(--text-secondary);">Rata-rata</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <div style="font-weight: 700;">{{ $user->total_work_duration }}</div>
+                                        <small style="color: var(--text-secondary);">Akumulasi</small>
+                                    </td>
                                     <td>
                                         <a href="{{ route('monitoring.detail', ['userId' => $user->id, 'start_date' => request('start_date', $startDate->format('Y-m-d')), 'end_date' => request('end_date', $endDate->format('Y-m-d'))]) }}"
                                             class="btn btn-sm btn-outline-primary" style="width: 100%; justify-content: center;">
@@ -283,7 +293,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center py-4">
+                                    <td colspan="9" class="text-center py-4">
                                         <div class="empty-state">
                                             <i class="fas fa-users-slash"></i>
                                             <h5>Tidak ada data pegawai</h5>
