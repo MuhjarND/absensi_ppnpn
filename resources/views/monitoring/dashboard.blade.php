@@ -15,34 +15,7 @@
 @php
     $izinAtauSakit = $izinAtauSakit ?? 0;
     $todayAttendances = $todayAttendances ?? ($recentAttendances ?? collect());
-    $reportStartDate = now()->copy()->startOfMonth()->format('Y-m-d');
-    $reportEndDate = now()->format('Y-m-d');
 @endphp
-
-<div class="card mb-4">
-    <div class="card-body"
-        style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
-        <div>
-            <div style="font-weight: 700; font-size: 16px;">Laporan Monitoring</div>
-            <div style="color: var(--text-secondary); font-size: 14px;">
-                Cetak atau unduh rekap monitoring periode bulan berjalan.
-            </div>
-        </div>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <a href="{{ route('monitoring.reports') }}" class="btn btn-outline-primary">
-                <i class="fas fa-file-invoice"></i> Buka Laporan
-            </a>
-            <a href="{{ route('monitoring.reports.export-pdf', ['start_date' => $reportStartDate, 'end_date' => $reportEndDate]) }}"
-                class="btn btn-outline-danger">
-                <i class="fas fa-file-pdf"></i> Export PDF
-            </a>
-            <a href="{{ route('monitoring.reports.export-pdf', ['start_date' => $reportStartDate, 'end_date' => $reportEndDate, 'print' => 1]) }}"
-                class="btn btn-outline-secondary" target="_blank">
-                <i class="fas fa-print"></i> Cetak PDF
-            </a>
-        </div>
-    </div>
-</div>
 
 <div class="stats-grid">
     <div class="stat-card primary">

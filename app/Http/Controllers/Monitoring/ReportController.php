@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Attendance;
 use App\User;
 use Dompdf\Dompdf;
-use Dompdf\Options;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -24,16 +23,21 @@ class ReportController extends Controller
 
     public function exportPdf(Request $request)
     {
+        if (!class_exists(Dompdf::class)) {
+            return redirect()->route('monitoring.reports', $request->query())
+                ->with('error', 'Library PDF belum tersedia di server. Jalankan composer install terlebih dahulu.');
+        }
+
         list($startDate, $endDate, $search) = $this->resolveReportFilters($request);
 
         $users = $this->buildReportUsersQuery($startDate, $endDate, $search)->get();
         $kopImageData = $this->getKopImageData();
 
-        $options = new Options();
-        $options->set('isHtml5ParserEnabled', true);
-        $options->set('isRemoteEnabled', true);
-
-        $dompdf = new Dompdf($options);
+        $dompdf = new Dompdf();
+        if (method_exists($dompdf, 'getOptions') && $dompdf->getOptions()) {
+            $dompdf->getOptions()->set('isHtml5ParserEnabled', true);
+            $dompdf->getOptions()->set('isRemoteEnabled', true);
+        }
         $dompdf->setPaper('A4', 'landscape');
         $dompdf->loadHtml(view('monitoring.reports-pdf', [
             'users' => $users,
