@@ -114,7 +114,8 @@ class User extends Authenticatable
                 ->first();
 
             if ($weeklySchedule) {
-                if ($weeklySchedule->is_off) {
+                // Minggu untuk security bersifat fleksibel dan bisa ditentukan secara lisan.
+                if ($weeklySchedule->is_off && $dayOfWeek !== 0) {
                     return null;
                 }
 
@@ -163,6 +164,11 @@ class User extends Authenticatable
             $targetCarbon = now();
         } else {
             $targetCarbon = $date instanceof Carbon ? $date : Carbon::parse($date);
+        }
+
+        // Security yang masuk di hari Minggu tetap boleh absen meskipun jadwal ditentukan lisan.
+        if ($targetCarbon->dayOfWeek === 0) {
+            return false;
         }
 
         return $this->securityShiftWeeklySchedules()
