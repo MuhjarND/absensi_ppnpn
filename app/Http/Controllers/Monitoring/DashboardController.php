@@ -32,6 +32,18 @@ class DashboardController extends Controller
             ->whereNotNull('clock_out')
             ->count();
 
+        $openAttendances = Attendance::with(['user.role', 'shift', 'clockInLocation'])
+            ->whereNotNull('clock_in')
+            ->whereNull('clock_out')
+            ->whereHas('user', function ($query) {
+                $query->where('is_active', true)
+                    ->whereHas('role', function ($roleQuery) {
+                        $roleQuery->where('name', 'pegawai');
+                    });
+            })
+            ->orderBy('clock_in', 'desc')
+            ->get();
+
         $izinAtauSakit = LeaveRequest::where('status', 'approved')
             ->whereDate('start_date', '<=', $today->toDateString())
             ->whereDate('end_date', '>=', $today->toDateString())
@@ -55,6 +67,7 @@ class DashboardController extends Controller
             'terlambatHariIni',
             'belumAbsen',
             'sudahPulang',
+            'openAttendances',
             'izinAtauSakit',
             'todayAttendances'
         ));
